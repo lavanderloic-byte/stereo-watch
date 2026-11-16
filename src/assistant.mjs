@@ -15,6 +15,7 @@ export const EQUIPMENT={
  spectrum:machine('8387e101-7d5b-4395-93e3-53e5643ce4de','全光谱高分辨率荧光寿命激光共聚焦显微镜')
 };
 export const EXPERIMENTS=[
+ {id:'fridge',label:'B2冰箱领用',hint:'B区操作间B2美洛昔康领用',keys:['fridge'],pattern:/冰箱|美洛昔康领用/},
  {id:'slice',label:'切脑片',hint:'固定样品振动切片机',keys:['slice'],pattern:/切脑片|切片/},
  {id:'harvest',label:'杀鼠 / 取脑',hint:'麻醉机 + 手术解剖台004，同期预约',keys:['anesthesia','table'],pattern:/杀鼠|取脑|灌流|取材/},
  {id:'fear',label:'电老鼠',hint:'FreezeScan条件恐惧系统',keys:['fear'],pattern:/电老鼠|条件恐惧|freezescan/i},

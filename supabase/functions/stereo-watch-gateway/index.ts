@@ -1,3 +1,4 @@
+import {booking} from './booking.ts';
 import {SITE_ORIGIN,allowedOrigin,keyMatches,targetFor} from './security.mjs';
 let cache:{at:number,value:{siteBearer:string,accessHash:string}}|null=null;
 async function config(){
@@ -17,10 +18,12 @@ Deno.serve(async(req:Request)=>{
  const json=(obj:unknown,status=200)=>new Response(JSON.stringify(obj),{status,headers:cors});
  if(!allowedOrigin(origin))return json({error:'不允许此来源访问'},403);
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
- const key=req.headers.get('x-stereo-key')||'';if(key.length<32||key.length>256)return json({error:'请使用专属链接或输入访问码'},401);
+ const key=req.headers.get('x-stereo-key')||'';if(key.length<8||key.length>256)return json({error:'请使用专属链接或输入访问码'},401);
  try{
   const cfg=await config();if(!await keyMatches(key,cfg.accessHash))return json({error:'访问码无效'},401);
-  const url=new URL(req.url),path=targetFor(url.searchParams.get('action')||'state',req.method,url.searchParams.get('cursor'));
+  const url=new URL(req.url);const action=url.searchParams.get('action')||'state';
+  if(['booking-status','booking-create','booking-authorize','booking-retry','worker-claim','worker-update','availability'].includes(action)){if(req.method!=='POST')return json({error:'请求方法无效'},405);try{return json(await booking(req,action));}catch(e){return json({error:e instanceof Error?e.message:'预约操作失败'},400);}}
+  const path=targetFor(url.searchParams.get('action')||'state',req.method,url.searchParams.get('cursor'));
   if(!path)return json({error:'请求无效'},400);
   let body:string|undefined;if(req.method==='POST'){body=await req.text();if(body.length>16384)return json({error:'设置内容过长'},413);if(body)try{JSON.parse(body);}catch{return json({error:'设置格式无效'},400);}}
   const response=await fetch(SITE_ORIGIN+path,{method:req.method,headers:{'OAI-Sites-Authorization':'Bearer '+cfg.siteBearer,'Content-Type':'application/json'},body,redirect:'error',signal:AbortSignal.timeout(path.includes('refresh')?90000:30000)});
