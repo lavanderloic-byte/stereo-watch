@@ -14,6 +14,8 @@ test('harvest pairs resources, imaging priority, spectrum overrides generic conf
  assert.deepEqual(equipmentFor(parseRequest('拍片',{},now)).map(m=>m.id),[EQUIPMENT.leica.id,EQUIPMENT.zeiss.id]);
  assert.equal(parseRequest('全光谱共聚焦拍片',{},now).experiment,'spectrum');
  assert.equal(equipmentFor(parseRequest('电老鼠',{},now))[0].id,EQUIPMENT.fear.id);
+ assert.equal(parseRequest('明天13点在B区打病毒，别忘冰箱，3小时',{},now).experiment,'virus');
+ assert.equal(parseRequest('今天13点预约B2冰箱15分钟',{},now).experiment,'fridge');
 });
 test('new experiment cannot inherit another experiment duration',()=>{
  const first=parseRequest('明天13.00切脑片3h',{},now);

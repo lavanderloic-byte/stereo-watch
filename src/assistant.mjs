@@ -29,7 +29,8 @@ export function parseRequest(text,previous={},now=Date.now()){
  const normalized=text.normalize('NFKC').replace(/：/g,':');
  const hits=EXPERIMENTS.filter(e=>e.pattern.test(normalized));
  // Full-spectrum explicitly overrides the generic confocal keyword.
- const chosen=hits.some(e=>e.id==='spectrum')?hits.filter(e=>e.id!=='imaging'):hits;
+ let chosen=hits.some(e=>e.id==='spectrum')?hits.filter(e=>e.id!=='imaging'):hits;
+ if(chosen.some(e=>e.id==='virus'))chosen=chosen.filter(e=>e.id!=='fridge');
  if(chosen.length>1)return {...previous,error:'这条消息包含多个实验，请每次安排一个实验。'};
  const fresh=chosen[0]&&chosen[0].id!==previous.experiment;
  const p={...(fresh?{}:previous),error:'',experiment:chosen[0]?.id||previous.experiment};

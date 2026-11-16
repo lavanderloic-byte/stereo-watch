@@ -18,7 +18,7 @@
   let cursor=begin;for(const e of wanted){const b=Date.parse(e.getAttribute('date')+'T'+e.getAttribute('time')+':00+08:00'),f=Date.parse(e.getAttribute('enddate')+'T'+e.getAttribute('endtime')+':00+08:00');if(b!==cursor||f>end)throw Error('时段不符合此设备的预约粒度');if(!e.classList.contains('canselect'))return {ok:false,code:'busy',error:'该时段已有占用或不可预约'};cursor=f;}
   if(cursor!==end)throw Error('日历未完整覆盖请求时段');
   const wantedIds=wanted.map(e=>e.id);
-  for(const id of wantedIds){const e=document.getElementById(id);if(!e)throw Error('日历元素已变化');if(!e.classList.contains('select')){e.click();await wait(()=>document.getElementById(id)?.classList.contains('select'),5000);}}
+  for(const id of wantedIds){const e=document.getElementById(id);if(!e)throw Error('日历元素已变化');if(!e.classList.contains('select')){for(const type of ['pointerdown','mousedown','pointerup','mouseup'])e.dispatchEvent(new MouseEvent(type,{bubbles:true,cancelable:true,view:window,button:0,buttons:type.endsWith('down')?1:0}));e.click();await wait(()=>document.getElementById(id)?.classList.contains('select'),5000);}}
   const selected=Array.from(document.querySelectorAll('[date][time]')).filter(e=>e.classList.contains('select'));if(selected.length!==wantedIds.length||selected.some(e=>!wantedIds.includes(e.id)))throw Error('实际选择的时间格与任务不一致，已停止（选中'+selected.length+'，目标'+wantedIds.length+'）');
   const next=document.querySelector('#nextStep');if(!visible(next))throw Error('缺少选择时间的下一步');next.click();
   await wait(()=>visible(document.querySelector('#ExperimentationContent')));
