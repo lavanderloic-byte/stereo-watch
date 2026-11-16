@@ -3,7 +3,8 @@
  const wait=async(fn,ms=30000)=>{const end=Date.now()+ms;while(Date.now()<end){const r=fn();if(r)return r;await new Promise(r=>setTimeout(r,250));}throw Error('学校页面未按预期加载，请检查登录、权限或页面提示');};
  const text=()=>document.body.innerText;
  const stamp=t=>t.slice(0,16).replace('T',' ');
- const fingerprint=async()=>{const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(text()));return Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');};
+ const confirmation=()=>{const t=text(),identity=t.indexOf('设备信息'),a=t.indexOf('预约时间及费用'),b=t.indexOf('设备使用说明',a),c=t.indexOf('我已仔细阅读并同意以上条款');if(identity<0||a<identity||b<a||c<b)throw Error('确认页订单结构已变化');const clean=s=>s.replace(/\s+/g,' ').trim();return {identity:clean(t.slice(identity,a)),fee:clean(t.slice(a,b)),terms:clean(t.slice(b,c))};};
+ const fingerprint=async()=>{const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(confirmation())));return Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');};
  const set=(selector,value)=>{const e=document.querySelector(selector);if(!visible(e))throw Error('缺少预约必填字段：'+selector);e.value=String(value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));};
  const validate=async r=>{if(Date.parse(r.start)<Date.now()+5*60000)throw Error('开始时间已临近或过去，请重新安排');if(!visible(document.querySelector('#submitBooking')))throw Error('学校确认页已失效');const t=text();if(!t.includes(r.start.slice(0,10))||!t.includes(r.start.slice(11,16))||!t.includes(r.end.slice(11,16)))throw Error('学校确认时间与任务不一致');return {ok:true,fingerprint:await fingerprint()};};
  async function prepare(r){
@@ -25,6 +26,7 @@
   set('#ExperimentationContent',r.content);set('#SampleCount',r.sampleCount);
   const next2=document.querySelector('#nextStep2');if(!visible(next2))throw Error('缺少信息页的下一步');next2.click();
   await wait(()=>visible(document.querySelector('#submitBooking')));
+  await wait(()=>!text().includes('正在提交请求'));
   const t=text();const a=t.indexOf('预约时间及费用'),b=t.indexOf('设备使用说明',a);const c=t.indexOf('我已仔细阅读并同意以上条款');
   if(a<0||b<a||c<b)throw Error('预约确认结构发生变化，停止提交');
   const result=await validate(r);return {...result,feeText:t.slice(a,b).slice(0,2500),terms:t.slice(b,c).slice(0,22000)};
